@@ -1,0 +1,127 @@
+{
+  "name": "Radar Legistativo",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://eayareunpwvykvubtwts.supabase.co/rest/v1/dim_proposicoes",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "Tema_IA",
+              "value": "ilike.*Tecnologia*"
+            },
+            {
+              "name": "select",
+              "value": "ID_Proposicao,Tipo_Proposicao,Numero_Proposicao,Ano_Proposicao,Tema_IA,Resumo_Executivo_IA"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "sb_publishable_jEI6dpik6oNlj2q-2dRGjg_JO0ADZXT"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer sb_publishable_jEI6dpik6oNlj2q-2dRGjg_JO0ADZXT"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "98199296-013f-442f-823f-0e4ccd8f71a2",
+      "name": "HTTP Request",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "chatId": "7808505182",
+        "text": "={{ $json && $json.Tema_IA ? \n\"📢 Nova Proposição sobre Tecnologia Identificada!\\n\\n\" +\n\"🏛️ Tipo/Número: \" + $json.Tipo_Proposicao + \" nº \" + $json.Numero_Proposicao + \"/\" + $json.Ano_Proposicao + \"\\n\" +\n\"🆔 ID: \" + $json.ID_Proposicao + \"\\n\" +\n\"💡 Tema: \" + $json.Tema_IA + \"\\n\\n\" +\n\"📝 Resumo Executivo da IA:\\n\" + $json.Resumo_Executivo_IA\n: \n\"⚪ Radar Legislativo Executado\\n\\n\" +\n\"⚠️ Nenhum projeto novo sobre o tema filtrado foi encontrado no banco de dados hoje. O monitoramento segue ativo em segundo plano.\" \n}}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "d2e4cb6d-37a5-49e6-88df-496d2d75a8b2",
+      "name": "Send a text message",
+      "webhookId": "a6f81e7a-f31a-4c20-8045-e1a093875cc7",
+      "credentials": {
+        "telegramApi": {
+          "id": "wnkuMudA1Q8TiGj1",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0daac20a-1d05-4363-9795-c07c88eee593",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4d3b4482-4193-4294-8797-d5b597010168",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "98c47d10aff99c87202f509d738ceed22729d2db43cf30f1ccd0057ab0629d62"
+  },
+  "nodeGroups": [],
+  "id": "WJShaqsoD8zRRZcN",
+  "tags": []
+}
