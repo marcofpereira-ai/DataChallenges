@@ -1,0 +1,18 @@
+📋 Prompt para Correção
+Contexto: Temos um script em Python chamado extract_deputados.py localizado dentro da pasta src/ do nosso projeto. O objetivo dele é extrair os dados de uma API e salvar um arquivo JSON em uma pasta de dados brutos (data/raw/).
+
+Problema: Atualmente, o script está usando caminhos relativos simples. Quando executado, ele cria erroneamente a pasta de dados dentro do diretório de código, gerando o caminho:
+C:\Users\usuario\PycharmProjects\DataChallenges\src\data\raw\deputados_bruto.json
+
+Resultado Esperado: O script deve identificar dinamicamente a raiz do projeto para que o arquivo JSON seja salvo na pasta de dados correta, localizada na raiz:
+C:\Users\usuario\PycharmProjects\DataChallenges\data\raw\deputados_bruto.json
+
+Requisitos da Solução:
+
+1- Refaça a lógica de definição de caminhos do script utilizando a biblioteca nativa os.
+
+2- Use os.path.abspath(__file__) para capturar a localização atual do script (pasta src) e suba um nível (os.path.dirname) para encontrar a raiz do projeto (DataChallenges) de forma dinâmica.
+
+3- Certifique-se de usar os.path.join para montar os caminhos de forma compatível com qualquer sistema operacional (Windows/Linux).
+
+Por favor, forneça o código corrigido com essa ancoragem dinâmica de diretório.

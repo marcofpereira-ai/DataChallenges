@@ -1,54 +1,66 @@
-# 🛰️ Radar Legislativo - Inteligência Governamental com IA
+# 🏛️ Bússola Pública - Pipeline de Inteligência Governamental com IA
 
-## 🏢 O Cenário de Negócio: Bússola Pública
-A **Bússola Pública** é uma consultoria de relações governamentais que vende inteligência legislativa para grandes clientes corporativos. Anteriormente, o monitoramento de projetos de lei, votações e gastos de deputados era feito manualmente por analistas que preenchiam planilhas pessoais — um processo descentralizado, suscetível a erros e impossível de escalar.
+[![Python](https://img.shields.io/badge/Engine-Python_3.12_||_Pandas-yellow?style=flat-square&logo=python)](https://pandas.pydata.org/)
+[![Environment](https://img.shields.io/badge/Package_Manager-uv-purple?style=flat-square)](https://github.com/astral-sh/uv)
+[![PostgreSQL](https://img.shields.io/badge/Data_Warehouse-Supabase_PostgreSQL-blue?style=flat-square&logo=postgresql)](https://supabase.com/)
+[![OpenAI](https://img.shields.io/badge/IA_Generativa-OpenAI_API-green?style=flat-square&logo=openai)](https://openai.com/)
+[![Parquet](https://img.shields.io/badge/Storage-Apache_Parquet-red?style=flat-square)](https://parquet.apache.org/)
 
-**A Solução:** Desenvolvimento de um pipeline de Engenharia de Dados automatizado, resiliente e escalável que extrai dados diários da API aberta da Câmara dos Deputados, padroniza as informações seguindo a arquitetura Medalhão e armazena os dados estruturados em um banco de dados relacional na nuvem, pronto para consumo analítico e enriquecido com Inteligência Artificial.
+## 📝 Cenário de Negócio & Desafio
 
----
+Este projeto consolida uma solução real de Engenharia de Dados desenvolvida para a **Bússola Pública**, uma consultoria de relações governamentais especializada em prover inteligência estratégica e analítica sobre o ecossistema legislativo brasileiro para clientes corporativos. 
 
-## 🏗️ Arquitetura do Pipeline de Dados (Medalhão)
+**O Problema:** Originalmente, o monitoramento das atividades parlamentares, gastos de deputados e o teor de votações na Câmara era realizado através de processos manuais e planilhas descentralizadas. Esse formato gerava severo atraso na tomada de decisão, assimetria de informações, erros de categorização temática e impossibilidade de escala analítica.
 
-O projeto foi construído seguindo os padrões modernos de Engenharia de Dados, dividindo o ciclo de vida dos dados em camadas de maturação:
-
-1. **Camada Raw (Bronze):** Ingestão e salvamento do JSON bruto local para garantir idempotência.
-2. **Camada Silver:** Limpeza, tipagem, deduplicação e tratamento de strings usando **Pandas**.
-3. **Camada Gold:** Otimização e armazenamento analítico em formato colunar **Parquet** (`pyarrow`).
-4. **Camada Cloud (PostgreSQL):** Ingestão do modelo dimensional no **Supabase** via `SQLAlchemy`.
+**A Solução:** Um pipeline de dados robusto, resiliente e totalmente automatizado estruturado sob a **Arquitetura Medallion (Bronze/Raw → Silver → Gold)**. A solução extrai dados de deputados, partidos, despesas e votações direto da API da Câmara Federal, trata e tipaga as informações via Pandas, aplica Inteligência Artificial Cognitiva (Embeddings + LLM GPT-4o-mini) para categorização e geração de resumos executivos de negócios, otimiza o armazenamento analítico local em formato colunar Parquet e consolida o Data Warehouse na nuvem através do Supabase (PostgreSQL).
 
 ---
 
-## 📋 Detalhamento do Desenvolvimento por Etapas
+## 🏗️ Arquitetura da Solução e Fluxo de Dados
 
-### 🧭 Etapa 1: Exploração da API
-Análise minuciosa da documentação da API de Dados Abertos da Câmara dos Deputados para mapeamento dos endpoints estratégicos (`/deputados`, `/proposicoes` e `/deputados/{id}/despesas`), identificando chaves de relacionamento, volumetria e regras de paginação.
+O ecossistema foi projetado utilizando práticas modernas de engenharia, estruturando o pipeline em camadas sequenciais de dados governadas por um orquestrador central (`main.py`):
 
-### 🔌 Etapa 2: Extração Resiliente (Python)
-Desenvolvimento de scripts modulares em Python utilizando a biblioteca `requests` para o consumo dos dados.
-* **Garantia de Idempotência:** Os dados brutos são salvos localmente em JSON antes de qualquer transformação. Se o pipeline falhar adiante, não há necessidade de re-onerar a API.
-* **Tratamento de Erros e Rate Limit:** Implementação de blocos `try/except` para falhas de rede, controle de paginação dinâmica via laços `while` e pausas milimétricas estratégicas para respeitar as políticas de requisições da Câmara.
+1. **Camada Bronze (Raw Stage):** Ingestão isolada dos dados brutos em arquivos JSON diretamente da API pública da Câmara dos Deputados. Conta com políticas rigorosas de resiliência, incluindo *Retry Loops* com recuo de tempo (*backoff*) e timeouts estendidos para blindar o pipeline contra instabilidades de rede e erros de servidor (`504 Gateway Timeout`), garantindo a captura íntegra de mais de 5.000 registros históricos.
+2. **Camada Silver (Processed Stage):** Processamento, limpeza e higienização dos dados usando Pandas. Nesta etapa, são aplicadas as regras de negócio: strings têm espaços limpos, colunas administrativas da API são descartadas, chaves substitutas (IDs) são padronizadas e tipos temporais/numéricos são convertidos para o padrão do banco de dados, gerando esquemas tabulares em arquivos CSV estruturados.
+3. **Camada Gold Stage (Analytics & Parquet):** Conversão otimizada dos dados da camada Silver para arquivos binários e colunares **Apache Parquet (com compressão Snappy)**. Essa etapa assegura alta performance para queries analíticas locais, redução drástica do espaço em disco e tipagem forte nativa de datas e IDs para ferramentas de BI.
+4. **Camada de Enriquecimento Cognitivo (IA):** Integração paralela com a API da OpenAI. Utiliza o modelo `text-embedding-3-small` para vetorizar as ementas dos projetos de lei e classificá-las por similaridade de cosseno em 10 macrotemas corporativos estratégicos. Em seguida, o modelo `gpt-4o-mini` gera resumos executivos focados em impactos de mercado em até 3 linhas.
+5. **Camada Cloud Load (Data Warehouse):** Carga incremental automatizada via SQLAlchemy com inserção otimizada em blocos (*chunksize*) para a nuvem do Supabase, criando e populando um modelo dimensional estrela pronto para consumo.
 
-### ⚡ Etapa 3: Transformação (Pandas) e Carga em Nuvem (PostgreSQL)
-* **Modelagem Dimensional (Star Schema):** Estruturação dos dados brutos em tabelas de dimensões (`dim_deputados`, `dim_proposicoes`) e fatos (`fato_despesas`), estabelecendo chaves primárias e estrangeiras transparentes.
-* **Qualidade de Dados:** Remoção de colunas web redundantes, padronização de siglas partidárias e estados (UFs), conversão rigorosa de strings de datas para formato `datetime` e garantia de tipagem flutuante para valores monetários (gerando mais de 70.000 linhas de despesas tratadas apenas para o ano corrente).
-* **Carga Cloud:** Ingestão otimizada em lotes (`chunksize`) utilizando `SQLAlchemy` para o **Supabase (PostgreSQL)** na nuvem.
+---
 
-### 🧠 Etapa 4: Camada de Inteligência Artificial
-*(Fase em desenvolvimento)* - Integração com LLMs via API para enriquecimento das proposições.
+## 📊 Modelagem do Data Warehouse (Star Schema)
 
-### 🎛️ Etapa 5: Automação e Orquestração (n8n)
-*(Fase em desenvolvimento)* - Criação de workflows automatizados para monitoramento e alertas.
+Os dados são carregados no banco de dados seguindo a modelagem dimensional para otimizar a performance de relatórios e painéis no Power BI:
+
+* **Tabelas Fato:**
+  * `fato_despesas`: Registra os gastos parlamentares detalhados por fornecedor, CNPJ, tipo de despesa e valores líquidos. (Conecta-se a `dim_deputados`).
+  * `fato_votacoes`: Consolida o histórico de eventos de votações ocorridas na Câmara, indicando o órgão legislativo, efeito prático e flag booleana de aprovação.
+* **Tabelas Dimensão:**
+  * `dim_deputados`: Cadastro completo dos parlamentares ativos.
+  * `dim_partidos`: Listagem padronizada dos partidos políticos brasileiros, servindo de filtro corporativo.
+  * `dim_proposicoes`: Contexto descritivo dos projetos de lei e emendas legislativas.
+  * `dim_proposicoes_ia`: Extensão da dimensão de proposições enriquecida com os campos analíticos `Tema_IA` e `Resumo_Executivo_IA`.
+
+---
+
+## 🛠️ Tecnologias Utilizadas & Justificativas
+
+* **Python 3.12:** Linguagem base de todo o ecossistema devido à flexibilidade e maturidade das bibliotecas de dados.
+* **UV Package Manager:** Gerenciador de pacotes de última geração, responsável pela criação rápida do ambiente virtual (`.venv`) e instalação ultrarrápida de dependências.
+* **Pandas:** Framework essencial utilizado para a transformação, junção, filtros e tipagem forte das colunas de dados.
+* **PyArrow & Parquet:** Formato colunar escolhido para a camada Gold visando compressão e performance analítica superior ao CSV tradicional.
+* **OpenAI (Embeddings + Chat):** Camada de IA responsável por transformar textos jurídicos complexos em insights analíticos claros de mercado.
+* **Supabase (PostgreSQL) & SQLAlchemy:** Infraestrutura robusta e segura em nuvem para hospedar as tabelas relacionais do Data Warehouse sem complexidade de gerenciamento de servidores.
 
 ---
 
 ## 🚀 Como Executar o Projeto
 
-### Pré-requisitos
-* Python 3.10+
-* Gerenciador de pacotes virtualizado **`uv`** instalado na máquina.
+### 1. Pré-requisitos
+Certifique-se de possuir o **Python 3.12+** e o gerenciador **uv** instalados em sua máquina.
 
-### 1. Clonar o Repositório e Instalar Dependências
+### 2. Configuração do Ambiente
+Clone o repositório e inicialize o ambiente virtual através do terminal na raiz do projeto:
 ```bash
-git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
-cd DataChallenges
-uv pip install -r requirements.txt
+# Cria e sincroniza o ambiente virtual usando o uv
+uv venv

@@ -25,12 +25,13 @@ def carregar_dados_no_supabase():
 
     engine = create_engine(db_url)
 
-    # MAPEAMENTO ATUALIZADO: dim_proposicoes agora puxa da pasta Gold com o sufixo _ia
+    # MAPEAMENTO ATUALIZADO: Incluindo dim_partidos e fato_votacoes no pipeline de carga
     cargas = [
-        {"caminho": os.path.join(pasta_silver, "dim_deputados.csv"), "tabela": "dim_deputados", "tipo": "Dimensão"},
-        {"caminho": os.path.join(pasta_gold, "dim_proposicoes_ia.csv"), "tabela": "dim_proposicoes",
-         "tipo": "Dimensão Enriquecida com IA"},
-        {"caminho": os.path.join(pasta_silver, "fato_despesas.csv"), "tabela": "fato_despesas", "tipo": "Fato"}
+        {"caminho": os.path.join(pasta_silver, "dim_deputados.csv"), "tabela": "dim_deputados", "tipo": "Dimensão Deputados"},
+        {"caminho": os.path.join(pasta_silver, "dim_partidos.csv"), "tabela": "dim_partidos", "tipo": "Dimensão Partidos"},
+        {"caminho": os.path.join(pasta_gold, "dim_proposicoes_ia.csv"), "tabela": "dim_proposicoes", "tipo": "Dimensão Enriquecida com IA"},
+        {"caminho": os.path.join(pasta_silver, "fato_despesas.csv"), "tabela": "fato_despesas", "tipo": "Fato Despesas"},
+        {"caminho": os.path.join(pasta_silver, "fato_votacoes.csv"), "tabela": "fato_votacoes", "tipo": "Fato Votações"}
     ]
 
     for item in cargas:
@@ -43,22 +44,30 @@ def carregar_dados_no_supabase():
         print(f"-> Carregando tabela {item['tipo']} '{item['tabela']}'...")
         df = pd.read_csv(caminho_arquivo, sep=";")
 
+        # --- Tratamento de Tipagem de Datas para o PostgreSQL ---
         if "Data_Despesa" in df.columns:
             df["Data_Despesa"] = pd.to_datetime(df["Data_Despesa"], errors="coerce")
+
+        if "Data_Votacao" in df.columns:
+            df["Data_Votacao"] = pd.to_datetime(df["Data_Votacao"], errors="coerce")
+
+        if "Data_Hora_Registro" in df.columns:
+            df["Data_Hora_Registro"] = pd.to_datetime(df["Data_Hora_Registro"], errors="coerce")
+        # --------------------------------------------------------
 
         # Envia para o PostgreSQL na nuvem
         df.to_sql(
             name=item["tabela"],
             con=engine,
-            if_exists="replace",
+            if_exists="replace",  # Substitui a tabela existente mantendo o schema atualizado
             index=False,
-            chunksize=5000,
+            chunksize=5000,       # Otimiza a inserção em blocos para evitar gargalos na rede
             method="multi"
         )
         print(f"   ✓ {df.shape[0]} linhas inseridas com sucesso na tabela '{item['tabela']}'.")
 
     print(f"\n======== ETAPA DE CARGA CONCLUÍDA ========")
-    print(f"Todas as tabelas (incluindo IA) estão na nuvem do Supabase!")
+    print(f"Todas as tabelas do ecossistema Bússola Pública estão na nuvem do Supabase!")
     print(f"==========================================")
 
 

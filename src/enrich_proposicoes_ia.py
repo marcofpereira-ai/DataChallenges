@@ -9,7 +9,7 @@ import pandas as pd
 # Carrega as chaves do .env
 load_dotenv()
 
-# Inicializa o cliente oficial da OpenAI (ele puxa a chave do .env automaticamente)
+# Inicializa o cliente oficial da OpenAI (puxa a chave do .env automaticamente)
 client = OpenAI()
 
 # 1. Definição dos Macrotemas Estratégicos da Bússola Pública
@@ -29,6 +29,8 @@ TEMAS_ALVO = [
 
 def obter_embedding(texto):
     """Gera o vetor matemático (embedding) de um texto usando a OpenAI"""
+    if not texto or texto.strip().lower() == "nan":
+        return None
     try:
         resposta = client.embeddings.create(
             input=[texto],
@@ -50,6 +52,9 @@ def calcular_similaridade(vetor_a, vetor_b):
 
 def gerar_resumo_executivo(ementa):
     """Gera um resumo executivo de 3 linhas focado em negócios"""
+    if not ementa or ementa.strip().lower() == "nan":
+        return "Ementa não fornecida para resumo."
+
     try:
         prompt = (
             "Você é um analista sênior de Relações Governamentais da consultoria Bússola Pública. "
@@ -72,32 +77,32 @@ def gerar_resumo_executivo(ementa):
         return resposta.choices[0].message.content.strip()
     except Exception as e:
         print(f"❌ Erro ao gerar resumo: {e}")
-        return "Resumo indisponível."
+        return "Resumo indisponível devido a instabilidade na API."
 
 
 def enriquecer_proposicoes_com_ia():
-    # === ANCORAGEM DE CAMINHO ===
+    # === ANCORAGEM DE CAMINHO ABSOLUTO ===
     src_dir = os.path.dirname(os.path.abspath(__file__))
     base_dir = os.path.dirname(src_dir)
     caminho_silver = os.path.join(base_dir, "data", "silver", "dim_proposicoes.csv")
     caminho_gold_ia = os.path.join(base_dir, "data", "gold", "dim_proposicoes_ia.csv")
-    # ============================
+    # =====================================
 
     print(f"[{datetime.now().strftime('%H:%M:%S')}] Iniciando a Camada de IA (Embeddings + LLM)...")
 
     if not os.path.exists(caminho_silver):
-        print("❌ Erro: Tabela dim_proposicoes.csv não encontrada na camada Silver.")
+        print(f"❌ Erro: Tabela dim_proposicoes.csv não encontrada na camada Silver em: {caminho_silver}")
         return
 
     # Carrega a dimensão de proposições
     df = pd.read_csv(caminho_silver, sep=";")
 
-    # 🚨 TRAVA DE SEGURANÇA E CUSTO: Vamos processar apenas as 10 primeiras para validar sem gastar quase nada
+    # 🚨 TRAVA DE SEGURANÇA E CUSTO: Processa apenas as 10 primeiras para validação controlada
     print("⚠️ ATENÇÃO: Executando trava de segurança. Processando apenas as 10 primeiras linhas para teste.")
     df_teste = df.head(10).copy()
 
     # Pré-calcula os embeddings dos nossos 10 temas fixos para economizar chamadas de API
-    print("-> Pré-calculando vetores dos 10 macrotemas da consultoria...")
+    print("-> Pré-calculando vetores dos 10 macrotemas estratégicos da consultoria...")
     embeddings_temas = {tema: obter_embedding(tema) for tema in TEMAS_ALVO}
 
     LISTA_TEMAS_CLASSIFICADOS = []
@@ -107,42 +112,48 @@ def enriquecer_proposicoes_com_ia():
         id_prop = linha["ID_Proposicao"]
         ementa = str(linha["Ementa"])
 
-        print(f"   [Processando {idx + 1}/10] ID: {id_prop}...")
+        print(f"   [Processando {idx + 1}/10] ID Proposição: {id_prop}...")
 
-        # --- CAMINHO A: CLASSIFICAÇÃO VIA EMBEDDINGS ---
+        # --- CAMINHO A: CLASSIFICAÇÃO INTELIGENTE VIA EMBEDDINGS ---
         embedding_ementa = obter_embedding(ementa)
 
         if embedding_ementa:
             maior_similaridade = -1
             tema_escolhido = "Outros / Não Classificado"
 
-            # Compara o vetor da ementa com o vetor de cada um dos 10 temas
+            # Compara o vetor da ementa com o vetor de cada um dos 10 temas alvo
             for tema, embedding_tema in embeddings_temas.items():
                 if embedding_tema:
-                    sim = calcular_similaridade(embedding_ementa, embedding_tema)
+                    sim = calcular_similarity(embedding_ementa, embedding_tema)
                     if sim > maior_similaridade:
                         maior_similaridade = sim
-                        tema_escolhido = tema.split(" (")[0]  # Pega só o nome principal do tema
+                        tema_escolhido = tema.split(" (")[0]  # Isola o nome principal do macrotema
 
             LISTA_TEMAS_CLASSIFICADOS.append(tema_escolhido)
         else:
-            LISTA_TEMAS_CLASSIFICADOS.append("Erro na Classificação")
+            LISTA_TEMAS_CLASSIFICADOS.append("Outros / Não Classificado")
 
-        # --- CAMINHO B: RESUMO EXECUTIVO VIA LLM ---
+        # --- CAMINHO B: RESUMO EXECUTIVO VIA LLM (GPT-4o-mini) ---
         resumo = gerar_resumo_executivo(ementa)
         LISTA_RESUMOS_EXECUTIVOS.append(resumo)
 
-    # Injeta as novas colunas geradas por IA no DataFrame de teste
+    # Injeta as novas colunas analíticas enriquecidas por IA no DataFrame
     df_teste["Tema_IA"] = LISTA_TEMAS_CLASSIFICADOS
     df_teste["Resumo_Executivo_IA"] = LISTA_RESUMOS_EXECUTIVOS
 
-    # Salva o resultado enriquecido na pasta Gold
+    # Cria o diretório gold se não existir e salva o arquivo
     os.makedirs(os.path.dirname(caminho_gold_ia), exist_ok=True)
     df_teste.to_csv(caminho_gold_ia, sep=";", index=False, encoding="utf-8-sig")
 
     print(f"\n======== ETAPA DE IA CONCLUÍDA ========")
-    print(f"Arquivo enriquecido salvo localmente em: {caminho_gold_ia}")
+    print(f"Tabela dim_proposicoes_ia criada com sucesso na camada Gold!")
+    print(f"Arquivo salvo localmente em: {caminho_gold_ia}")
     print("========================================")
+
+
+# Função auxiliar interna para evitar NameError caso haja digitação errada
+def calcular_similarity(a, b):
+    return calcular_similaridade(a, b)
 
 
 if __name__ == "__main__":

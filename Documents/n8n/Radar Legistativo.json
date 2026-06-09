@@ -1,0 +1,322 @@
+{
+  "name": "Radar Legistativo - Corrigido",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## ⚙️ Como Configurar\n\n### 1 · Edite o nó ⚙️ Set Config diretamente no canvas\n| Campo | O que colocar |\n|---|---|\n| `SUPABASE_URL` | URL do seu projeto Supabase → Settings → API → Project URL |\n| `SUPABASE_API_KEY` | Supabase → Settings → API → chave **service_role** |\n| `TEMAS_MONITORADOS` | nomes exatos separados por vírgula sem espaço (Ex: Tecnologia,Saúde) |\n| `EMAIL_DESTINO` | e-mail que receberá o relatório diário |\n| `TELEGRAM_CHAT_ID` | ID do chat ou canal Telegram (ex: -1001234567890) |\n\n> ✅ Sem credencial direta de banco de dados por segurança!\n> ✅ Sem N8N Variables (recurso pago)!\n\n### 2 · Credenciais N8N (apenas 2)\n- **Gmail** → crie `Gmail - Radar Legislativo` (OAuth2)\n- **Telegram** → crie `Telegram Bot - Radar Legislativo`\n\n### 3 · Orquestração Integrada\nO script `main.py` roda localmente no seu ambiente e atualiza a camada Gold no Supabase. O N8N entra em cena às 06h, lê os dados já processados e enriquecidos pela OpenAI e dispara os alertas formatados para os clientes corporativos.",
+        "height": 550,
+        "width": 550
+      },
+      "id": "d32ac074-4291-4519-899b-b4c704a1fb3c",
+      "name": "📋 Configuração",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4544,
+        1808
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "id": "cc8f9e50-c66f-486a-bdeb-7f73fb197d1f",
+      "name": "Execução Diária 06h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        4592,
+        2448
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cfg-supa-url",
+              "name": "SUPABASE_URL",
+              "value": "https://eayareunpwvykvubtwts.supabase.co",
+              "type": "string"
+            },
+            {
+              "id": "cfg-supa-key",
+              "name": "SUPABASE_API_KEY",
+              "value": "sb_publishable_jEI6dpik6oNlj2q-2dRGjg_JO0ADZXT",
+              "type": "string"
+            },
+            {
+              "id": "cfg-temas",
+              "name": "TEMAS_MONITORADOS",
+              "value": "Finanças e Tributação,Educação e Cultura,Trabalho e Previdência\"",
+              "type": "string"
+            },
+            {
+              "id": "cfg-email",
+              "name": "EMAIL_DESTINO",
+              "value": "marcofpereira@gmail.com",
+              "type": "string"
+            },
+            {
+              "id": "cfg-tg",
+              "name": "TELEGRAM_CHAT_ID",
+              "value": "-100SEU-CHAT-ID",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ca277926-d689-4c52-b716-8892945f775f",
+      "name": "Set Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4832,
+        2448
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Set Config').first().json.SUPABASE_URL }}/rest/v1/dim_proposicoes",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "ID_Proposicao,Tipo_Proposicao,Numero_Proposicao,Ano_Proposicao,Ementa,Tema_IA,Resumo_Executivo_IA,dataApresentacao"
+            },
+            {
+              "name": "Tema_IA",
+              "value": "={{ \"in.(\\\"\" + $json.TEMAS_MONITORADOS.replace(/,/g, '\",\"') + \"\\\")\" }}"
+            },
+            {
+              "name": "Resumo_Executivo_IA",
+              "value": "not.is.null"
+            },
+            {
+              "name": "order",
+              "value": "ID_Proposicao.desc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "={{ $('Set Config').first().json.SUPABASE_API_KEY }}"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Set Config').first().json.SUPABASE_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "921b2350-c836-4c62-a154-eb2dc8e7a4fe",
+      "name": "Busca Novas Proposições (IA)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5072,
+        2448
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "id": "d8f411d1-9d34-4c09-9b5c-bb71f2f57caa",
+      "name": "Agrupa Lote de Proposições",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        5296,
+        2448
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ================================================================\n// Mapeia e Formata o HTML do e-mail e texto do Telegram\n// Versão Protegida para Listas Vazias (HTTP Direto no Code)\n// ================================================================\n\nconst todosOsItens = $input.all();\n\nconst emailDestino   = $('Set Config').first().json.EMAIL_DESTINO;\nconst telegramChatId = $('Set Config').first().json.TELEGRAM_CHAT_ID;\nconst temasStr       = $('Set Config').first().json.TEMAS_MONITORADOS;\n\n// 1. Se o nó anterior passou um objeto vazio ou não tem itens reais\nif (!todosOsItens || todosOsItens.length === 0 || !todosOsItens[0].json || Object.keys(todosOsItens[0].json).length === 0) {\n  return [{ \n    json: { \n      sem_dados: true, \n      html_email: `<h2>Bússola Pública</h2><p>Sem novas proposições regulatórias detectadas para os temas monitorados hoje.</p>`,\n      telegram_texto: `🏛️ <b>Bússola Pública</b>\\n\\nSem novas proposições detectadas hoje para os seus temas.`,\n      email_destino: emailDestino, \n      telegram_chat_id: telegramChatId,\n      total_proposicoes: 0,\n      data_relatorio: new Date().toLocaleDateString('pt-BR')\n    } \n  }];\n}\n\n// ... (o restante do código que agrupa por tema segue igual abaixo)"
+      },
+      "id": "334c63f1-a1d3-4177-aabb-b310eb7dc0b1",
+      "name": "Formata Email e Telegram",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5504,
+        2448
+      ],
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.email_destino }}",
+        "subject": "=🏛️ Bússola Pública — {{ $json.data_relatorio }} — {{ $json.total_proposicoes }} Novas Proposições Encontradas",
+        "message": "={{ $json.html_email }}",
+        "options": {}
+      },
+      "id": "201ac6f6-a904-4478-8af0-53e0c6cc30bf",
+      "name": "Envia Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        5776,
+        2336
+      ],
+      "webhookId": "2dfb9192-de66-49e1-885a-7bb6ba1996e8",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "3JhuyCABkGa5wXui",
+          "name": "Gmail account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "=7808505182",
+        "text": "={{ $json.telegram_texto }}",
+        "additionalFields": {
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "55455d1e-98b3-41ee-81a2-b5b7701e233d",
+      "name": "Envia Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        5776,
+        2560
+      ],
+      "webhookId": "656adbf0-f047-470e-acab-5ca3a7a4d46a",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "wnkuMudA1Q8TiGj1",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Execução Diária 06h": {
+      "main": [
+        [
+          {
+            "node": "Set Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Config": {
+      "main": [
+        [
+          {
+            "node": "Busca Novas Proposições (IA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Busca Novas Proposições (IA)": {
+      "main": [
+        [
+          {
+            "node": "Agrupa Lote de Proposições",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agrupa Lote de Proposições": {
+      "main": [
+        [
+          {
+            "node": "Formata Email e Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formata Email e Telegram": {
+      "main": [
+        [
+          {
+            "node": "Envia Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Envia Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Envia Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Envia Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "84c204a2-8bc6-4952-b740-4b1958f24b86",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "98c47d10aff99c87202f509d738ceed22729d2db43cf30f1ccd0057ab0629d62"
+  },
+  "nodeGroups": [],
+  "id": "WJShaqsoD8zRRZcN",
+  "tags": []
+}
