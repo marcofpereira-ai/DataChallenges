@@ -234,7 +234,7 @@ sb_publishable_KJ8uBR6Ms-mNseD3hbKPIg_NxkwyHnO
 2. Adicione o header `apikey` com o valor `sb_publishable_KJ8uBR6Ms-mNseD3hbKPIg_NxkwyHnO`
 3. Envie a requisição — a resposta retorna o conteúdo da tabela em JSON
 
-> Uma collection Postman pronta com essas requisições está disponível em [`Documents/Postman/Supabase - SQUAD 21001.json`](Documents/Postman/Supabase%20-%20SQUAD%2021001.json) — basta importar no Postman (`Import` → selecionar o arquivo).
+> Uma collection Postman pronta com essas requisições está disponível em [`Documents/Postman/Supabase - SQUAD 21001.json`](/Documents/Postman/Supabase%20-%20SQUA%2021001.json) — basta importar no Postman (`Import` → selecionar o arquivo).
 
 ### Segurança: Row Level Security (RLS)
 Todas as tabelas do schema possuem **RLS (Row Level Security) habilitado**, com uma política de **somente leitura (`SELECT`) liberada para a chave pública (`anon`/`publishable`)**. Isso significa que:
