@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bússola Pública · SQUAD 21001</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    @charset "utf-8";
+
+    :root {
+      --bg: #050812;
+      --bg2: #09111F;
+      --surface: rgba(255,255,255,.07);
+      --surface2: rgba(255,255,255,.11);
+      --card: rgba(255,255,255,.075);
+      --card2: rgba(255,255,255,.12);
+      --line: rgba(255,255,255,.12);
+      --line2: rgba(74,222,128,.32);
+      --text: #F8FBFF;
+      --text-strong: #FFFFFF;
+      --muted: rgba(248,251,255,.66);
+      --muted2: rgba(248,251,255,.46);
+      --green: #4ADE80;
+      --green2: #22C55E;
+      --cyan: #86EFAC;
+      --amber: #F6C85F;
+      --red: #FF6B8A;
+      --shadow: 0 40px 120px rgba(0,0,0,.42);
+      --soft-shadow: 0 24px 80px rgba(0,0,0,.22);
+      --radius: 32px;
+      --glass-blur: 26px;
+    }
+
+    body.light {
+      --bg: #F6FFFA;
+      --bg2: #FFFFFF;
+      --surface: rgba(255,255,255,.74);
+      --surface2: rgba(255,255,255,.92);
+      --card: rgba(255,255,255,.78);
+      --card2: rgba(255,255,255,.96);
+      --line: rgba(10,64,30,.09);
+      --line2: rgba(22,163,74,.24);
+      --text: #0A2540;
+      --text-strong: #06172B;
+      --muted: rgba(10,37,64,.66);
+      --muted2: rgba(10,37,64,.44);
+      --green: #22C55E;
+      --green2: #16A34A;
+      --cyan: #4ADE80;
+      --shadow: 0 36px 120px rgba(10,64,30,.13);
+      --soft-shadow: 0 20px 70px rgba(10,64,30,.10);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      transition: background 0.45s, color 0.45s;
+    }
+
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 46% 8%,  rgba(74,222,128,0.18) 0%, transparent 38%),
+        radial-gradient(circle at 14% 72%, rgba(34,197,94,0.10)  0%, transparent 34%),
+        radial-gradient(circle at 86% 76%, rgba(134,239,172,0.08) 0%, transparent 34%),
+        linear-gradient(#030713 0%, #071327 48%, #030713 100%);
+      z-index: -5;
+      transition: background 0.45s;
+    }
+
+    body.light::before {
+      background:
+        radial-gradient(circle at 47% 6%,  rgba(22,163,74,0.14)  0%, transparent 42%),
+        radial-gradient(circle at 14% 72%, rgba(74,222,128,0.12)  0%, transparent 34%),
+        radial-gradient(circle at 86% 78%, rgba(134,239,172,0.08) 0%, transparent 36%),
+        linear-gradient(#F6FFFA 0%, #ECFDF5 46%, #FFFFFF 100%);
+    }
+
+    #gridCanvas {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: -4; opacity: 0.72;
+      transition: opacity 0.45s;
+    }
+    body.light #gridCanvas { opacity: 0.22; }
+
+    #p3d {
+      position: fixed; inset: 0;
+      z-index: -3; pointer-events: none;
+      opacity: 0.55; mix-blend-mode: screen;
+      transition: opacity 0.45s;
+    }
+    body.light #p3d { opacity: 0.18; mix-blend-mode: multiply; }
+
+    .orb {
+      position: fixed;
+      width: min(760px,80vw); height: min(760px,80vw);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(74,222,128,0.16) 0%, rgba(22,163,74,0.06) 42%, transparent 72%);
+      top: 4%; left: 50%; transform: translateX(-50%);
+      animation: pulse 5s ease-in-out infinite;
+      z-index: -2; pointer-events: none; filter: blur(2px);
+    }
+    body.light .orb {
+      background: radial-gradient(circle, rgba(22,163,74,0.10) 0%, rgba(74,222,128,0.05) 42%, transparent 72%);
+    }
+    @keyframes pulse {
+      0%,100% { transform: translateX(-50%) scale(1); }
+      50%      { transform: translateX(-50%) scale(1.07); }
+    }
+
+    .noise {
+      position: fixed; inset: 0;
+      background:
+        linear-gradient(rgba(255,255,255,.027) 1px, transparent 1px) 0 0 / 64px 64px,
+        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+      z-index: -1;
+      mask-image: linear-gradient(rgba(0,0,0,.92), rgba(0,0,0,.16));
+      pointer-events: none;
+    }
+    body.light .noise {
+      background:
+        linear-gradient(rgba(10,64,30,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(10,64,30,.03) 1px, transparent 1px);
+      opacity: 0.42;
+    }
+
+    .container { width: min(1180px, 100% - 48px); margin: 0 auto; }
+
+    /* ── HEADER ── */
+    header {
+      position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+      width: min(1180px, 100% - 40px); z-index: 30;
+      border: 1px solid var(--line);
+      background: rgba(5,8,18,0.58);
+      backdrop-filter: blur(28px) saturate(1.25);
+      border-radius: 999px;
+      box-shadow: 0 20px 80px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08);
+      transition: 0.45s;
+    }
+    body.light header {
+      background: rgba(255,255,255,.78);
+      box-shadow: 0 16px 60px rgba(10,64,30,.11), inset 0 1px 0 rgba(255,255,255,.95);
+    }
+
+    .nav {
+      min-height: 70px; display: flex;
+      align-items: center; justify-content: space-between;
+      gap: 14px; padding: 10px 14px 10px 18px;
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      min-width: max-content; text-decoration: none;
+    }
+
+    .brand-shell {
+      display: flex; align-items: center; justify-content: center;
+      height: 50px; padding: 0 20px; border-radius: 22px;
+      border: 1px solid rgba(74,222,128,.22);
+      background: linear-gradient(135deg, rgba(74,222,128,.12), rgba(74,222,128,.04));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 0 34px rgba(74,222,128,.18);
+      position: relative; overflow: hidden;
+    }
+    body.light .brand-shell {
+      background: linear-gradient(135deg, rgba(6,43,20,.96), rgba(10,64,30,.88));
+      border-color: rgba(22,163,74,.22);
+      box-shadow: 0 14px 38px rgba(10,64,30,.14), inset 0 1px 0 rgba(255,255,255,.10);
+    }
+    .brand-shell::before {
+      content: "";
+      position: absolute; inset: -80% -30%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,.22), transparent);
+      transform: translateX(-70%) rotate(12deg);
+      animation: logoShine 6s ease-in-out infinite;
+    }
+    @keyframes logoShine {
+      0%,100% { transform: translateX(-70%) rotate(12deg); }
+      50%      { transform: translateX(120%) rotate(12deg); }
+    }
+
+    .brand-name {
+      font-size: 16px; font-weight: 900; letter-spacing: 1px;
+      color: #FFFFFF; position: relative; z-index: 1;
+      text-shadow: 0 0 16px rgba(74,222,128,.30);
+    }
+    .brand-name span { color: #4ADE80; }
+
+    .brand-project {
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      white-space: nowrap;
+    }
+    body.light .brand-project { color: rgba(10,37,64,.55); }
+
+    .theme-toggle {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px; border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.055);
+      backdrop-filter: blur(14px); flex-shrink: 0;
+    }
+    .theme-option {
+      border: 0; cursor: pointer;
+      min-width: 38px; height: 34px; border-radius: 999px;
+      color: var(--muted); background: transparent;
+      font-weight: 850; font-size: 13px; transition: 0.25s;
+    }
+    .theme-option.active {
+      background: var(--text-strong); color: var(--bg);
+      box-shadow: 0 0 24px rgba(74,222,128,.22);
+    }
+    body.light .theme-option.active { background: #0A2540; color: #fff; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh; display: flex; align-items: center;
+      padding-top: 120px; padding-bottom: 60px; overflow: hidden;
+      text-align: center;
+    }
+    .hero-inner {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 24px; width: 100%;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 11px; letter-spacing: 5.5px; text-transform: uppercase;
+      color: var(--green); font-weight: 850;
+      border: 1px solid rgba(74,222,128,.25);
+      padding: 6px 18px; border-radius: 999px;
+      background: rgba(74,222,128,.06);
+    }
+    body.light .eyebrow { background: rgba(22,163,74,.08); border-color: rgba(22,163,74,.25); }
+
+    h1 {
+      font-size: clamp(52px,8vw,104px); line-height: 0.96;
+      letter-spacing: -5px; font-weight: 900; color: var(--text-strong);
+      text-shadow: 0 0 44px rgba(74,222,128,.20);
+    }
+    body.light h1 { text-shadow: none; }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #fff 0%, #86EFAC 45%, #D1FAE5 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    body.light .gradient-text {
+      background: linear-gradient(90deg, #0A2540 0%, #16A34A 48%, #4ADE80 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .hero-desc {
+      color: var(--muted); font-size: 18px; line-height: 1.82;
+      max-width: 740px; text-align: center;
+    }
+
+    /* ── METRICS STRIP ── */
+    .metrics-strip {
+      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+      margin-top: 10px;
+    }
+    .metric-chip {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 18px 28px; border-radius: 24px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      backdrop-filter: blur(var(--glass-blur));
+      box-shadow: var(--soft-shadow);
+      transition: 0.3s;
+    }
+    body.light .metric-chip {
+      background: rgba(255,255,255,.86);
+      border-color: rgba(10,64,30,.08);
+    }
+    .metric-chip:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .metric-num {
+      font-size: 32px; font-weight: 900; letter-spacing: -1.5px;
+      color: var(--green); line-height: 1;
+    }
+    .metric-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; color: var(--muted2); margin-top: 4px;
+    }
+
+    /* scroll hint */
+    .scroll-hint {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 6px; margin-top: 16px; color: var(--muted2); font-size: 12px;
+      animation: bobble 2s ease-in-out infinite;
+    }
+    @keyframes bobble { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+
+    /* ── TABS ── */
+    .tabs-section { padding: 20px 0 120px; }
+
+    .tab-nav {
+      display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+      margin-bottom: 42px;
+      background: rgba(255,255,255,.04);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px;
+      width: fit-content;
+      margin-left: auto; margin-right: auto;
+    }
+    body.light .tab-nav {
+      background: rgba(255,255,255,.72);
+      border-color: rgba(10,64,30,.10);
+    }
+
+    .tab-btn {
+      padding: 11px 22px; border-radius: 999px; border: 0; cursor: pointer;
+      font-size: 13px; font-weight: 750; color: var(--muted);
+      background: transparent; transition: 0.25s; white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--text-strong); background: rgba(74,222,128,.07); }
+    .tab-btn.active {
+      background: var(--text-strong); color: var(--bg);
+      box-shadow: 0 6px 20px rgba(0,0,0,.24), 0 0 24px rgba(74,222,128,.14);
+    }
+    body.light .tab-btn.active { background: #16A34A; color: #fff; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn 0.35s ease; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+    /* ── GLASS CARD ── */
+    .glass-card {
+      border: 1px solid var(--line);
+      background: var(--card);
+      backdrop-filter: blur(var(--glass-blur)) saturate(1.25);
+      border-radius: var(--radius);
+      box-shadow: var(--soft-shadow);
+      padding: 36px;
+      transition: 0.35s;
+      margin-bottom: 28px;
+    }
+    body.light .glass-card {
+      background: rgba(255,255,255,.82);
+      border-color: rgba(10,64,30,.08);
+    }
+
+    .section-title {
+      font-size: clamp(26px,3.5vw,36px); font-weight: 900;
+      letter-spacing: -1.5px; color: var(--text-strong);
+      margin-bottom: 8px;
+    }
+    .section-sub {
+      color: var(--muted); font-size: 15px; line-height: 1.7; margin-bottom: 28px;
+    }
+
+    /* ── PIPELINE / MEDALLION FLOW ── */
+    .pipeline-flow {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;
+      margin-bottom: 36px;
+    }
+    .pipe-card {
+      border: 1px solid var(--line);
+      border-radius: 28px; padding: 24px;
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      transition: 0.3s;
+    }
+    body.light .pipe-card { background: rgba(255,255,255,.82); border-color: rgba(10,64,30,.08); }
+    .pipe-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+    .pipe-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 36px; height: 36px; border-radius: 12px;
+      background: rgba(74,222,128,.14); color: var(--green);
+      font-size: 16px; font-weight: 900; margin-bottom: 14px;
+    }
+    .pipe-card h3 { font-size: 15px; font-weight: 800; margin-bottom: 6px; color: var(--text-strong); }
+    .pipe-card .pipe-sub { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted2); margin-bottom: 12px; }
+    .pipe-card p { font-size: 12.5px; color: var(--muted); line-height: 1.6; margin-bottom: 10px; }
+
+    .pipe-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .pipe-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 11.5px; color: var(--muted); line-height: 1.5;
+    }
+    .pipe-list li::before {
+      content: ""; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0; margin-top: 4px;
+    }
+
+    .pipe-file {
+      display: inline-block; font-family: "Courier New", monospace;
+      font-size: 11px; padding: 2px 8px; border-radius: 6px;
+      background: rgba(74,222,128,.08); color: #86EFAC;
+    }
+
+    .tech-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .tech-tag {
+      font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 8px;
+      border: 1px solid var(--line); color: var(--muted2);
+      background: rgba(255,255,255,.04);
+    }
+    body.light .tech-tag { background: rgba(255,255,255,.6); }
+
+    /* ── DADOS TAB ── */
+    .table-selector {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px;
+    }
+    .table-btn {
+      padding: 8px 18px; border-radius: 999px; border: 1px solid var(--line);
+      font-size: 12px; font-weight: 750; color: var(--muted);
+      background: rgba(255,255,255,.04); cursor: pointer; transition: 0.25s;
+    }
+    body.light .table-btn { background: rgba(255,255,255,.6); }
+    .table-btn:hover { color: var(--text-strong); border-color: var(--green); }
+    .table-btn.active {
+      background: rgba(74,222,128,.12); color: var(--green);
+      border-color: rgba(74,222,128,.4);
+      font-weight: 800;
+    }
+
+    .schema-panel { display: none; }
+    .schema-panel.active { display: block; animation: fadeIn 0.25s ease; }
+
+    .schema-header {
+      display: flex; align-items: flex-start; gap: 16px; margin-bottom: 24px;
+    }
+    .schema-badge {
+      padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 800;
+      letter-spacing: 1.5px; text-transform: uppercase; flex-shrink: 0;
+    }
+    .badge-dim { background: rgba(134,239,172,.12); color: #86EFAC; }
+    .badge-fato { background: rgba(246,200,95,.12); color: var(--amber); }
+    .badge-ia { background: rgba(255,107,138,.10); color: var(--red); }
+    .schema-header-text h3 {
+      font-size: 18px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 4px; color: var(--text-strong);
+    }
+    .schema-header-text p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+    .schema-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .schema-table th {
+      text-align: left; padding: 10px 14px;
+      font-size: 11px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted2); border-bottom: 1px solid var(--line);
+    }
+    .schema-table td {
+      padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.05);
+      vertical-align: top; line-height: 1.5;
+    }
+    body.light .schema-table td { border-color: rgba(10,64,30,.05); }
+    .schema-table tr:last-child td { border-bottom: 0; }
+    .schema-table tr:hover td { background: rgba(74,222,128,.04); }
+    body.light .schema-table tr:hover td { background: rgba(22,163,74,.04); }
+    .col-name { font-family: "Courier New", monospace; font-weight: 700; color: var(--green); }
+    .col-type {
+      display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 11px;
+      font-weight: 700; background: rgba(255,255,255,.06); color: var(--muted);
+    }
+    body.light .col-type { background: rgba(10,37,64,.06); }
+    .col-pk {
+      display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px;
+      font-weight: 800; background: rgba(74,222,128,.10); color: var(--green); margin-left: 6px;
+    }
+    .col-desc { color: var(--muted); }
+
+    /* ── KPI / IA TAB ── */
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px;
+      margin-bottom: 36px;
+    }
+    .kpi-card {
+      border: 1px solid var(--line);
+      border-radius: 24px; padding: 24px 22px;
+      background: var(--card);
+      backdrop-filter: blur(16px);
+      text-align: center; transition: 0.25s;
+    }
+    body.light .kpi-card { background: rgba(255,255,255,.82); border-color: rgba(10,64,30,.08); }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--soft-shadow); }
+    .kpi-icon { font-size: 28px; margin-bottom: 8px; }
+    .kpi-value { font-size: 30px; font-weight: 900; letter-spacing: -2px; color: var(--green); line-height: 1; }
+    .kpi-name { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted2); margin-top: 4px; }
+
+    .questions-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+    }
+    .q-box {
+      border: 1px solid var(--line);
+      border-radius: 24px; padding: 28px;
+      background: var(--card);
+      backdrop-filter: blur(16px);
+    }
+    body.light .q-box { background: rgba(255,255,255,.78); border-color: rgba(10,64,30,.08); }
+    .q-box h3 {
+      font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
+      margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+    }
+    .q-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 13px; line-height: 1.55;
+    }
+    .q-item:last-child { border-bottom: 0; }
+    .q-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+    .dot-green { background: var(--green); }
+    .dot-amber { background: var(--amber); }
+    .dot-red { background: var(--red); }
+    .k-green { color: var(--green); }
+    .k-amber { color: var(--amber); }
+    .k-red { color: var(--red); }
+
+    /* ── N8N NODE FLOW ── */
+    .node-flow {
+      display: flex; flex-direction: column; gap: 0; margin-bottom: 32px;
+    }
+    .node-row { display: flex; align-items: stretch; gap: 0; }
+    .node-connector {
+      display: flex; flex-direction: column; align-items: center;
+      width: 48px; flex-shrink: 0;
+    }
+    .node-connector .line {
+      width: 2px; flex: 1; background: linear-gradient(to bottom, rgba(74,222,128,.3), rgba(74,222,128,.15));
+      min-height: 20px;
+    }
+    .node-connector .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--green); box-shadow: 0 0 8px rgba(74,222,128,.5);
+      flex-shrink: 0;
+    }
+    .node-item {
+      flex: 1; border: 1px solid var(--line);
+      border-radius: 16px; padding: 16px 20px; margin: 6px 0;
+      background: var(--card); backdrop-filter: blur(14px); transition: 0.25s;
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    body.light .node-item { background: rgba(255,255,255,.78); border-color: rgba(10,64,30,.08); }
+    .node-item:hover { border-color: rgba(74,222,128,.3); transform: translateX(4px); }
+    .node-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 10px; flex-shrink: 0;
+      background: rgba(74,222,128,.14); color: var(--green);
+      font-size: 13px; font-weight: 900;
+    }
+    .node-body { flex: 1; }
+    .node-name { font-size: 14px; font-weight: 800; color: var(--text-strong); margin-bottom: 2px; }
+    .node-type { font-size: 11px; font-weight: 700; color: var(--muted2); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; }
+    .node-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 40px 0;
+      text-align: center;
+      color: var(--muted2);
+      font-size: 13px;
+    }
+    .footer-inner { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .footer-brand { font-weight: 800; color: var(--green); letter-spacing: 1px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1100px) {
+      .pipeline-flow { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .questions-grid { grid-template-columns: 1fr; }
+      .tab-btn { font-size: 12px; padding: 9px 16px; }
+    }
+    @media (max-width: 600px) {
+      h1 { letter-spacing: -3px; }
+      .glass-card { padding: 24px 18px; }
+      .pipeline-flow { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="gridCanvas"></canvas>
+  <div id="p3d"></div>
+  <div class="orb"></div>
+  <div class="noise"></div>
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="nav container">
+      <a class="brand" href="#">
+        <div class="brand-shell">
+          <span class="brand-name">SQUAD <span>21001</span></span>
+        </div>
+        <span class="brand-project">Bússola Pública</span>
+      </a>
+      <div style="flex:1"></div>
+      <div class="theme-toggle">
+        <button id="themeDark"  class="theme-option">&#9790;</button>
+        <button id="themeLight" class="theme-option">&#9728;</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ── HERO ── -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-inner">
+          <span class="eyebrow">Entrega Final &nbsp;·&nbsp; Data Challenger &nbsp;·&nbsp; Pós Tech Xperiun</span>
+
+          <h1>
+            <span class="gradient-text">Bússola</span><br>
+            Pública
+          </h1>
+
+          <p class="hero-desc">
+            Pipeline de inteligência governamental construído pelo Squad sobre a
+            <strong>API de Dados Abertos da Câmara dos Deputados</strong> — Arquitetura Medalhão
+            (Bronze → Silver → Gold), enriquecimento com IA generativa (embeddings + GPT-4o-mini)
+            e carga incremental em Data Warehouse na nuvem (Supabase), com notificações diárias
+            automatizadas via n8n.
+          </p>
+
+          <div class="metrics-strip">
+            <div class="metric-chip">
+              <span class="metric-num">5</span>
+              <span class="metric-label">Camadas do Pipeline</span>
+            </div>
+            <div class="metric-chip">
+              <span class="metric-num">10</span>
+              <span class="metric-label">Macrotemas de IA</span>
+            </div>
+            <div class="metric-chip">
+              <span class="metric-num">5</span>
+              <span class="metric-label">Tabelas Star Schema</span>
+            </div>
+            <div class="metric-chip">
+              <span class="metric-num">06h</span>
+              <span class="metric-label">Rotina Diária N8N</span>
+            </div>
+            <div class="metric-chip">
+              <span class="metric-num">Parquet</span>
+              <span class="metric-label">Camada Gold</span>
+            </div>
+          </div>
+
+          <div class="scroll-hint">
+            <span>Explore a entrega do Squad</span>
+            <span>&#8595;</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TABS ── -->
+    <section class="tabs-section">
+      <div class="container">
+
+        <!-- Tab navigation -->
+        <div class="tab-nav">
+          <button class="tab-btn active" data-tab="visao">🏛️ Visão Geral</button>
+          <button class="tab-btn" data-tab="arquitetura">⚙️ Arquitetura</button>
+          <button class="tab-btn" data-tab="dados">🗄️ Modelo de Dados</button>
+          <button class="tab-btn" data-tab="ia">🤖 Camada de IA</button>
+          <button class="tab-btn" data-tab="n8n">🔁 Automação N8N</button>
+          <button class="tab-btn" data-tab="stack">🧰 Stack &amp; Como Executar</button>
+        </div>
+
+        <!-- TAB 1 — VISÃO GERAL -->
+        <div class="tab-panel active" id="tab-visao">
+          <div class="glass-card">
+            <h2 class="section-title">O Problema de Negócio</h2>
+            <p class="section-sub">
+              A consultoria fictícia <strong>Bússola Pública</strong> presta serviços de inteligência
+              em Relações Governamentais (GR), monitorando a atividade legislativa da Câmara dos
+              Deputados — proposições, votações, despesas parlamentares e composição partidária.
+              Antes da entrega do Squad, esse acompanhamento era manual: informações relevantes
+              ficavam dispersas, eram identificadas tardiamente, e não havia padronização na
+              priorização de temas estratégicos para cada cliente.
+            </p>
+            <p class="section-sub" style="margin-bottom:0">
+              O Squad respondeu a esse problema entregando um pipeline de dados ponta a ponta,
+              orquestrado por <span class="pipe-file">main.py</span>, que extrai os dados públicos da
+              Câmara, aplica limpeza e padronização, converte para um formato analítico eficiente
+              (Parquet), enriquece cada proposição com classificação temática e resumo executivo
+              gerados por IA, e carrega tudo em um Data Warehouse na nuvem — pronto para consultas,
+              dashboards e as notificações automáticas do n8n.
+            </p>
+          </div>
+
+          <div class="questions-grid">
+            <div class="q-box">
+              <h3><span class="k-green">●</span> Benefícios Entregues pelo Squad</h3>
+              <div class="q-item"><span class="q-dot dot-green"></span> Redução drástica do tempo de monitoramento manual de proposições legislativas.</div>
+              <div class="q-item"><span class="q-dot dot-green"></span> Priorização automática por tema estratégico via similaridade de embeddings de IA.</div>
+              <div class="q-item"><span class="q-dot dot-green"></span> Resumos executivos de 3 linhas, prontos para tomada de decisão por clientes corporativos.</div>
+              <div class="q-item"><span class="q-dot dot-green"></span> Notificações diárias automáticas (e-mail e Telegram) sobre novas proposições relevantes.</div>
+              <div class="q-item"><span class="q-dot dot-green"></span> Base estruturada em Star Schema, pronta para análises históricas e dashboards futuros.</div>
+            </div>
+            <div class="q-box">
+              <h3><span class="k-amber">●</span> Decisões de Arquitetura do Squad</h3>
+              <div class="q-item"><span class="q-dot dot-amber"></span> Arquitetura Medalhão (Bronze → Silver → Gold) para isolar dados brutos, limpos e analíticos.</div>
+              <div class="q-item"><span class="q-dot dot-amber"></span> Parquet + Snappy na camada Gold: leitura mais rápida e menor custo de armazenamento que CSV.</div>
+              <div class="q-item"><span class="q-dot dot-amber"></span> Classificação por embeddings (text-embedding-3-small) em vez de regras fixas, para acompanhar a linguagem jurídica variável das ementas.</div>
+              <div class="q-item"><span class="q-dot dot-amber"></span> Carga incremental e em lote (chunked) no Supabase via SQLAlchemy, evitando sobrecarga da conexão.</div>
+              <div class="q-item"><span class="q-dot dot-amber"></span> Orquestração de notificações via n8n, com política "never drop items" para nunca abortar o fluxo diário.</div>
+            </div>
+          </div>
+        </div><!-- /tab-visao -->
+
+        <!-- TAB 2 — ARQUITETURA -->
+        <div class="tab-panel" id="tab-arquitetura">
+          <div class="glass-card">
+            <h2 class="section-title">Arquitetura Medalhão</h2>
+            <p class="section-sub">
+              O Squad estruturou o pipeline em cinco macroetapas, todas orquestradas por
+              <span class="pipe-file">main.py</span> através da função
+              <span class="pipe-file">executar_pipeline()</span>, com tratamento de falhas
+              independente em cada fase.
+            </p>
+
+            <div class="pipeline-flow">
+              <div class="pipe-card">
+                <div class="pipe-num">1</div>
+                <h3>Bronze — Extração</h3>
+                <p class="pipe-sub">src/extract_*.py</p>
+                <p>Ingestão dos dados brutos (JSON) da API de Dados Abertos da Câmara: deputados, partidos, votações, proposições e despesas.</p>
+                <ul class="pipe-list">
+                  <li>Retry/backoff para erros 502/503/504</li>
+                  <li>Extração incremental de proposições e despesas do ano corrente</li>
+                  <li>Salva em data/raw/</li>
+                </ul>
+              </div>
+              <div class="pipe-card">
+                <div class="pipe-num">2</div>
+                <h3>Silver — Transformação</h3>
+                <p class="pipe-sub">src/transform_*.py</p>
+                <p>Limpeza e padronização com Pandas: remoção de colunas administrativas, normalização de tipos e nomes de colunas.</p>
+                <ul class="pipe-list">
+                  <li>Conversão de datas e valores numéricos</li>
+                  <li>Renomeia colunas para o padrão do Star Schema</li>
+                  <li>Salva CSVs em data/silver/</li>
+                </ul>
+              </div>
+              <div class="pipe-card">
+                <div class="pipe-num">3</div>
+                <h3>Gold — Parquet</h3>
+                <p class="pipe-sub">src/gold_stage.py</p>
+                <p>Conversão das 5 tabelas Silver para Apache Parquet, com compressão Snappy via PyArrow.</p>
+                <ul class="pipe-list">
+                  <li>Tipagem final de IDs e datas</li>
+                  <li>Formato colunar otimizado para leitura analítica</li>
+                  <li>Salva em data/gold_stage/</li>
+                </ul>
+              </div>
+              <div class="pipe-card">
+                <div class="pipe-num">4</div>
+                <h3>Enriquecimento IA</h3>
+                <p class="pipe-sub">src/enrich_proposicoes_ia.py</p>
+                <p>Classificação temática por similaridade de cosseno entre embeddings e geração de resumo executivo via gpt-4o-mini.</p>
+                <ul class="pipe-list">
+                  <li>OpenAI text-embedding-3-small</li>
+                  <li>10 macrotemas estratégicos</li>
+                  <li>Salva data/gold/dim_proposicoes_ia.csv</li>
+                </ul>
+              </div>
+              <div class="pipe-card">
+                <div class="pipe-num">5</div>
+                <h3>Carga — Supabase</h3>
+                <p class="pipe-sub">src/load_to_supabase.py</p>
+                <p>Carga incremental das 5 tabelas finais no Data Warehouse PostgreSQL (Supabase) via SQLAlchemy.</p>
+                <ul class="pipe-list">
+                  <li>Inserção em lote (chunked, method="multi")</li>
+                  <li>Modelo Star Schema pronto para consumo</li>
+                  <li>Base para a automação n8n</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="tech-tags">
+              <span class="tech-tag">Python 3.12</span>
+              <span class="tech-tag">uv</span>
+              <span class="tech-tag">Pandas</span>
+              <span class="tech-tag">PyArrow / Parquet (Snappy)</span>
+              <span class="tech-tag">OpenAI API</span>
+              <span class="tech-tag">SQLAlchemy</span>
+              <span class="tech-tag">Supabase (PostgreSQL)</span>
+              <span class="tech-tag">n8n</span>
+            </div>
+          </div>
+        </div><!-- /tab-arquitetura -->
+
+        <!-- TAB 3 — MODELO DE DADOS -->
+        <div class="tab-panel" id="tab-dados">
+          <div class="glass-card">
+            <h2 class="section-title">Star Schema da Entrega Final</h2>
+            <p class="section-sub">
+              O Squad consolidou o modelo dimensional em 5 tabelas no Supabase: três dimensões,
+              duas fatos — com destaque para <span class="pipe-file">dim_proposicoes</span>, que
+              recebe os campos gerados pela camada de IA (<span class="pipe-file">Tema_IA</span> e
+              <span class="pipe-file">Resumo_Executivo_IA</span>).
+            </p>
+
+            <div class="table-selector">
+              <button class="table-btn active" data-schema="proposicoes">dim_proposicoes</button>
+              <button class="table-btn" data-schema="deputados">dim_deputados</button>
+              <button class="table-btn" data-schema="partidos">dim_partidos</button>
+              <button class="table-btn" data-schema="votacoes">fato_votacoes</button>
+              <button class="table-btn" data-schema="despesas">fato_despesas</button>
+            </div>
+
+            <!-- dim_proposicoes -->
+            <div class="schema-panel active" id="schema-proposicoes">
+              <div class="schema-header">
+                <span class="schema-badge badge-dim">Dimensão</span>
+                <div class="schema-header-text">
+                  <h3>dim_proposicoes</h3>
+                  <p>Dimensão de proposições legislativas, enriquecida pela camada de IA com tema estratégico e resumo executivo.</p>
+                </div>
+              </div>
+              <table class="schema-table">
+                <tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td><span class="col-name">ID_Proposicao</span><span class="col-pk">PK</span></td><td><span class="col-type">INT8</span></td><td class="col-desc">Identificador único da proposição na API da Câmara.</td></tr>
+                <tr><td><span class="col-name">Tipo_Proposicao</span></td><td><span class="col-type">VARCHAR(10)</span></td><td class="col-desc">Sigla do tipo (PL, PEC, MSC, MPV etc.).</td></tr>
+                <tr><td><span class="col-name">Numero_Proposicao</span></td><td><span class="col-type">INT4</span></td><td class="col-desc">Número oficial da proposição.</td></tr>
+                <tr><td><span class="col-name">Ano_Proposicao</span></td><td><span class="col-type">INT4</span></td><td class="col-desc">Ano de apresentação.</td></tr>
+                <tr><td><span class="col-name">Ementa</span></td><td><span class="col-type">TEXT</span></td><td class="col-desc">Texto integral da ementa da proposição.</td></tr>
+                <tr><td><span class="col-name">Tema_IA</span> <span class="schema-badge badge-ia" style="margin-left:6px;font-size:9px;padding:2px 6px;">IA</span></td><td><span class="col-type">VARCHAR(100)</span></td><td class="col-desc">Macrotema estratégico atribuído por similaridade de embeddings (10 categorias-alvo).</td></tr>
+                <tr><td><span class="col-name">Resumo_Executivo_IA</span> <span class="schema-badge badge-ia" style="margin-left:6px;font-size:9px;padding:2px 6px;">IA</span></td><td><span class="col-type">TEXT</span></td><td class="col-desc">Resumo executivo de até 3 linhas, gerado por gpt-4o-mini.</td></tr>
+                <tr><td><span class="col-name">dataApresentacao</span></td><td><span class="col-type">DATE</span></td><td class="col-desc">Data oficial de protocolo da proposição.</td></tr>
+              </table>
+            </div>
+
+            <!-- dim_deputados -->
+            <div class="schema-panel" id="schema-deputados">
+              <div class="schema-header">
+                <span class="schema-badge badge-dim">Dimensão</span>
+                <div class="schema-header-text">
+                  <h3>dim_deputados</h3>
+                  <p>Dimensão de deputados em exercício na legislatura monitorada.</p>
+                </div>
+              </div>
+              <table class="schema-table">
+                <tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td><span class="col-name">ID_Deputado</span><span class="col-pk">PK</span></td><td><span class="col-type">INT8</span></td><td class="col-desc">Identificador único do deputado na API da Câmara.</td></tr>
+                <tr><td><span class="col-name">Nome_Deputado</span></td><td><span class="col-type">VARCHAR</span></td><td class="col-desc">Nome civil ou parlamentar do deputado.</td></tr>
+                <tr><td><span class="col-name">Partido</span></td><td><span class="col-type">VARCHAR</span></td><td class="col-desc">Sigla do partido — referencia dim_partidos.</td></tr>
+                <tr><td><span class="col-name">UF</span></td><td><span class="col-type">VARCHAR(2)</span></td><td class="col-desc">Unidade federativa de representação (uppercase).</td></tr>
+                <tr><td><span class="col-name">ID_Legislatura</span></td><td><span class="col-type">INT4</span></td><td class="col-desc">Identificador da legislatura corrente.</td></tr>
+                <tr><td><span class="col-name">URL_Foto</span></td><td><span class="col-type">TEXT</span></td><td class="col-desc">URL da foto oficial do parlamentar.</td></tr>
+              </table>
+            </div>
+
+            <!-- dim_partidos -->
+            <div class="schema-panel" id="schema-partidos">
+              <div class="schema-header">
+                <span class="schema-badge badge-dim">Dimensão</span>
+                <div class="schema-header-text">
+                  <h3>dim_partidos</h3>
+                  <p>Dimensão de partidos políticos com representação na Câmara.</p>
+                </div>
+              </div>
+              <table class="schema-table">
+                <tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td><span class="col-name">ID_Partido</span><span class="col-pk">PK</span></td><td><span class="col-type">INT8</span></td><td class="col-desc">Identificador único do partido na API da Câmara.</td></tr>
+                <tr><td><span class="col-name">Sigla_Partido</span></td><td><span class="col-type">VARCHAR(10)</span></td><td class="col-desc">Sigla oficial do partido.</td></tr>
+                <tr><td><span class="col-name">Nome_Partido</span></td><td><span class="col-type">VARCHAR</span></td><td class="col-desc">Nome completo do partido.</td></tr>
+              </table>
+            </div>
+
+            <!-- fato_votacoes -->
+            <div class="schema-panel" id="schema-votacoes">
+              <div class="schema-header">
+                <span class="schema-badge badge-fato">Fato</span>
+                <div class="schema-header-text">
+                  <h3>fato_votacoes</h3>
+                  <p>Fatos de votações realizadas no plenário e nas comissões.</p>
+                </div>
+              </div>
+              <table class="schema-table">
+                <tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td><span class="col-name">ID_Votacao</span><span class="col-pk">PK</span></td><td><span class="col-type">VARCHAR</span></td><td class="col-desc">Identificador único da votação.</td></tr>
+                <tr><td><span class="col-name">Data_Votacao</span></td><td><span class="col-type">DATE</span></td><td class="col-desc">Data em que a votação ocorreu.</td></tr>
+                <tr><td><span class="col-name">Data_Hora_Registro</span></td><td><span class="col-type">TIMESTAMP</span></td><td class="col-desc">Data e hora exata do registro da votação.</td></tr>
+                <tr><td><span class="col-name">ID_Orgao</span></td><td><span class="col-type">INT4</span></td><td class="col-desc">Órgão (plenário/comissão) responsável pela votação.</td></tr>
+                <tr><td><span class="col-name">Efeito_Votacao</span></td><td><span class="col-type">VARCHAR</span></td><td class="col-desc">Efeito regimental da votação.</td></tr>
+                <tr><td><span class="col-name">Descricao_Votacao</span></td><td><span class="col-type">TEXT</span></td><td class="col-desc">Descrição textual do que foi votado.</td></tr>
+                <tr><td><span class="col-name">Flg_Aprovada</span></td><td><span class="col-type">BOOLEAN</span></td><td class="col-desc">Indica se a votação foi aprovada.</td></tr>
+              </table>
+            </div>
+
+            <!-- fato_despesas -->
+            <div class="schema-panel" id="schema-despesas">
+              <div class="schema-header">
+                <span class="schema-badge badge-fato">Fato</span>
+                <div class="schema-header-text">
+                  <h3>fato_despesas</h3>
+                  <p>Fatos de despesas parlamentares (Cota para Exercício da Atividade Parlamentar — CEAP), FK para dim_deputados.</p>
+                </div>
+              </div>
+              <table class="schema-table">
+                <tr><th>Coluna</th><th>Tipo</th><th>Descrição</th></tr>
+                <tr><td><span class="col-name">ID_Deputado</span></td><td><span class="col-type">INT8</span></td><td class="col-desc">Referência ao deputado que originou a despesa — FK para dim_deputados.</td></tr>
+                <tr><td><span class="col-name">Data_Despesa</span></td><td><span class="col-type">DATE</span></td><td class="col-desc">Data do documento de despesa.</td></tr>
+                <tr><td><span class="col-name">Ano</span> / <span class="col-name">Mes</span></td><td><span class="col-type">INT4</span></td><td class="col-desc">Ano e mês de referência da despesa.</td></tr>
+                <tr><td><span class="col-name">Tipo_Despesa</span></td><td><span class="col-type">VARCHAR</span></td><td class="col-desc">Categoria da despesa (combustível, hospedagem, consultoria etc.).</td></tr>
+                <tr><td><span class="col-name">Fornecedor</span></td><td><span class="col-type">VARCHAR</span></td><td class="col-desc">Nome do fornecedor/prestador de serviço.</td></tr>
+                <tr><td><span class="col-name">CNPJ_CPF_Fornecedor</span></td><td><span class="col-type">VARCHAR</span></td><td class="col-desc">Documento do fornecedor.</td></tr>
+                <tr><td><span class="col-name">Valor_Liquido</span> / <span class="col-name">Valor_Glosa</span></td><td><span class="col-type">NUMERIC</span></td><td class="col-desc">Valor líquido pago e valor glosado (não reembolsado).</td></tr>
+              </table>
+            </div>
+          </div>
+        </div><!-- /tab-dados -->
+
+        <!-- TAB 4 — IA -->
+        <div class="tab-panel" id="tab-ia">
+          <div class="glass-card">
+            <h2 class="section-title">Camada de Enriquecimento com IA</h2>
+            <p class="section-sub">
+              O coração analítico da entrega: o módulo
+              <span class="pipe-file">src/enrich_proposicoes_ia.py</span> transforma a ementa bruta
+              de cada proposição em inteligência pronta para consumo executivo.
+            </p>
+
+            <div class="kpi-grid">
+              <div class="kpi-card">
+                <div class="kpi-icon">🧬</div>
+                <div class="kpi-value">embeddings</div>
+                <div class="kpi-name">text-embedding-3-small</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-icon">🎯</div>
+                <div class="kpi-value">10</div>
+                <div class="kpi-name">Macrotemas Estratégicos</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-icon">📝</div>
+                <div class="kpi-value">3 linhas</div>
+                <div class="kpi-name">Resumo Executivo (gpt-4o-mini)</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-icon">📐</div>
+                <div class="kpi-value">cosseno</div>
+                <div class="kpi-name">Similaridade Ementa × Tema</div>
+              </div>
+            </div>
+
+            <div class="questions-grid">
+              <div class="q-box">
+                <h3><span class="k-green">●</span> Como o Squad classifica os temas</h3>
+                <div class="q-item"><span class="q-dot dot-green"></span> Cada um dos 10 macrotemas-alvo (TEMAS_ALVO) é convertido em um embedding de referência.</div>
+                <div class="q-item"><span class="q-dot dot-green"></span> A ementa de cada proposição também é convertida em embedding via text-embedding-3-small.</div>
+                <div class="q-item"><span class="q-dot dot-green"></span> A similaridade de cosseno entre a ementa e cada tema define o Tema_IA atribuído.</div>
+                <div class="q-item"><span class="q-dot dot-green"></span> Temas cobrem áreas como Finanças e Tributação, Tecnologia/IA, Meio Ambiente, Saúde, Educação, Defesa e Segurança, Infraestrutura, Direito Civil/Penal e Agronegócio.</div>
+              </div>
+              <div class="q-box">
+                <h3><span class="k-amber">●</span> Resumo executivo gerado por IA</h3>
+                <div class="q-item"><span class="q-dot dot-amber"></span> O gpt-4o-mini recebe a ementa e gera um Resumo_Executivo_IA de no máximo 3 linhas.</div>
+                <div class="q-item"><span class="q-dot dot-amber"></span> O prompt direciona o tom para tomadores de decisão, com foco em implicações práticas e ação imediata.</div>
+                <div class="q-item"><span class="q-dot dot-amber"></span> Resultado consolidado em data/gold/dim_proposicoes_ia.csv, que alimenta a dim_proposicoes final no Supabase.</div>
+                <div class="q-item"><span class="q-dot dot-red"></span> Por controle de custo, a execução de validação processa um lote inicial controlado de proposições antes da expansão para o histórico completo.</div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /tab-ia -->
+
+        <!-- TAB 5 — N8N -->
+        <div class="tab-panel" id="tab-n8n">
+          <div class="glass-card">
+            <h2 class="section-title">Automação Diária — N8N</h2>
+            <p class="section-sub">
+              Após a carga no Supabase, o Squad configurou um workflow n8n que roda diariamente às
+              <strong>06h</strong>, identifica novas proposições classificadas pela IA e distribui
+              alertas automáticos para os clientes da Bússola Pública.
+            </p>
+
+            <div class="node-flow">
+              <div class="node-row">
+                <div class="node-connector"><div class="dot"></div><div class="line"></div></div>
+                <div class="node-item">
+                  <div class="node-num">1</div>
+                  <div class="node-body">
+                    <div class="node-name">Schedule Trigger — 06h</div>
+                    <div class="node-type">Gatilho Diário</div>
+                    <div class="node-desc">Dispara o workflow todos os dias às 06h, antes do horário comercial dos clientes de GR.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="node-row">
+                <div class="node-connector"><div class="dot"></div><div class="line"></div></div>
+                <div class="node-item">
+                  <div class="node-num">2</div>
+                  <div class="node-body">
+                    <div class="node-name">Set Config</div>
+                    <div class="node-type">Configuração Centralizada</div>
+                    <div class="node-desc">Centraliza credenciais e parâmetros do Squad: URL/chave do Supabase, temas monitorados, destinatários de e-mail e chat ID do Telegram.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="node-row">
+                <div class="node-connector"><div class="dot"></div><div class="line"></div></div>
+                <div class="node-item">
+                  <div class="node-num">3</div>
+                  <div class="node-body">
+                    <div class="node-name">Busca Novas Proposições (IA)</div>
+                    <div class="node-type">HTTP Request → Supabase PostgREST</div>
+                    <div class="node-desc">Consulta dim_proposicoes filtrando pelos temas monitorados e por proposições recentes já classificadas pela camada de IA.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="node-row">
+                <div class="node-connector"><div class="dot"></div><div class="line"></div></div>
+                <div class="node-item">
+                  <div class="node-num">4</div>
+                  <div class="node-body">
+                    <div class="node-name">Agrupa Lote de Proposições</div>
+                    <div class="node-type">Aggregate</div>
+                    <div class="node-desc">Consolida os itens retornados em um único lote para formatação das mensagens.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="node-row">
+                <div class="node-connector"><div class="dot"></div><div class="line"></div></div>
+                <div class="node-item">
+                  <div class="node-num">5</div>
+                  <div class="node-body">
+                    <div class="node-name">Formata Email e Telegram</div>
+                    <div class="node-type">Code (JavaScript)</div>
+                    <div class="node-desc">Monta o HTML do e-mail e o Markdown do Telegram a partir do Tema_IA e do Resumo_Executivo_IA, tratando o cenário de lista vazia.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="node-row">
+                <div class="node-connector"><div class="dot"></div></div>
+                <div class="node-item">
+                  <div class="node-num">6</div>
+                  <div class="node-body">
+                    <div class="node-name">Envia Email (Gmail) &amp; Telegram</div>
+                    <div class="node-type">Notificação Final</div>
+                    <div class="node-desc">Entrega a notificação diária aos clientes do Squad — por e-mail (Gmail) e por mensagem (Telegram).</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="questions-grid">
+              <div class="q-box">
+                <h3><span class="k-green">●</span> Resiliência — "Never Drop Items"</h3>
+                <div class="q-item"><span class="q-dot dot-green"></span> O nó HTTP de busca está configurado com "Always Output Data" / política de nunca descartar itens.</div>
+                <div class="q-item"><span class="q-dot dot-green"></span> Se não houver novas proposições no dia, o workflow não é abortado: o nó de formatação gera uma mensagem padrão de "monitoria estável".</div>
+                <div class="q-item"><span class="q-dot dot-green"></span> O cliente do Squad sempre recebe a notificação diária — mesmo sem novidades, garantindo confiança no serviço.</div>
+              </div>
+              <div class="q-box">
+                <h3><span class="k-amber">●</span> Próximos Passos do Squad</h3>
+                <div class="q-item"><span class="q-dot dot-amber"></span> Agendamento do pipeline de ingestão incremental via GitHub Actions, antes do trigger diário do n8n.</div>
+                <div class="q-item"><span class="q-dot dot-amber"></span> Camada vetorial (pgvector + índice HNSW) para busca semântica e RAG sobre o histórico de proposições.</div>
+                <div class="q-item"><span class="q-dot dot-amber"></span> Dashboards analíticos sobre o Star Schema consolidado no Supabase.</div>
+              </div>
+            </div>
+          </div>
+        </div><!-- /tab-n8n -->
+
+        <!-- TAB 6 — STACK -->
+        <div class="tab-panel" id="tab-stack">
+          <div class="glass-card">
+            <h2 class="section-title">Stack Tecnológica do Squad</h2>
+            <p class="section-sub">
+              Tecnologias escolhidas pelo Squad para cada camada da entrega final, com foco em
+              custo controlado, performance analítica e automação de ponta a ponta.
+            </p>
+            <div class="tech-tags" style="margin-top:0; margin-bottom: 28px;">
+              <span class="tech-tag">Python 3.12</span>
+              <span class="tech-tag">uv (gerenciador de pacotes)</span>
+              <span class="tech-tag">Pandas</span>
+              <span class="tech-tag">PyArrow / Apache Parquet (Snappy)</span>
+              <span class="tech-tag">OpenAI — text-embedding-3-small</span>
+              <span class="tech-tag">OpenAI — gpt-4o-mini</span>
+              <span class="tech-tag">SQLAlchemy</span>
+              <span class="tech-tag">Supabase (PostgreSQL)</span>
+              <span class="tech-tag">n8n</span>
+              <span class="tech-tag">Gmail &amp; Telegram (notificações)</span>
+              <span class="tech-tag">API Dados Abertos — Câmara dos Deputados</span>
+            </div>
+
+            <h2 class="section-title" style="font-size: 22px;">Como Executar o Pipeline</h2>
+            <p class="section-sub">
+              Visão resumida dos comandos usados pelo Squad para reproduzir a entrega final
+              (sem credenciais — configure suas próprias chaves em um arquivo .env local).
+            </p>
+            <div class="pipeline-flow" style="grid-template-columns: 1fr 1fr;">
+              <div class="pipe-card">
+                <div class="pipe-num">⚙️</div>
+                <h3>Ambiente</h3>
+                <p class="pipe-sub">setup</p>
+                <ul class="pipe-list">
+                  <li>uv venv &amp; ativação do ambiente virtual</li>
+                  <li>uv pip install -r requirements.txt</li>
+                  <li>Configurar variáveis sensíveis em .env (não versionado)</li>
+                </ul>
+              </div>
+              <div class="pipe-card">
+                <div class="pipe-num">▶️</div>
+                <h3>Execução</h3>
+                <p class="pipe-sub">main.py</p>
+                <ul class="pipe-list">
+                  <li>python main.py executa as 5 fases em sequência</li>
+                  <li>Cada fase é isolada com tratamento de erro próprio</li>
+                  <li>Métricas de tempo são exibidas ao final de cada fase</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div><!-- /tab-stack -->
+
+      </div><!-- /container -->
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span class="footer-brand">SQUAD 21001</span>
+      <span>Bússola Pública &mdash; Entrega Final &middot; Data Challenger &middot; Pós Tech Xperiun</span>
+      <span style="color:var(--muted2);font-size:11px;">
+        Dados: API da Câmara dos Deputados (dados.camara.leg.br) &middot; Stack: Python · Pandas · PyArrow · OpenAI · SQLAlchemy · Supabase · n8n
+      </span>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════
+       GRID + PARTICLE CANVAS
+    ═══════════════════════════════════════════════════════ */
+    const canvas = document.getElementById('gridCanvas');
+    const ctx = canvas.getContext('2d');
+    let w, h, t = 0, particles = [];
+
+    function resize() {
+      w = canvas.width  = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+      particles = Array.from({ length: Math.min(90, Math.floor(w / 18)) }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 1.7 + .35,
+        vx: (Math.random() - .5) * .16,
+        vy: (Math.random() - .5) * .16,
+        a: Math.random() * .42 + .08
+      }));
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+      const light = document.body.classList.contains('light');
+      const sz = 64;
+      const ox = (t * .20) % sz;
+      const oy = (t * .10) % sz;
+
+      ctx.strokeStyle = light ? 'rgba(22,163,74,0.055)' : 'rgba(74,222,128,0.060)';
+      ctx.lineWidth = .5;
+
+      for (let x = -sz + ox; x < w + sz; x += sz) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = -sz + oy; y < h + sz; y += sz) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+
+      particles.forEach((p, i) => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = light ? `rgba(22,163,74,${p.a * .78})` : `rgba(74,222,128,${p.a})`;
+        ctx.fill();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const q = particles[j];
+          const dx = p.x - q.x, dy = p.y - q.y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if (d < 116) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
+            ctx.strokeStyle = light
+              ? `rgba(22,163,74,${(1 - d/116) * .055})`
+              : `rgba(74,222,128,${(1 - d/116) * .080})`;
+            ctx.stroke();
+          }
+        }
+      });
+
+      t += .5;
+      requestAnimationFrame(draw);
+    }
+
+    resize(); draw(); window.addEventListener('resize', resize);
+
+    /* ═══════════════════════════════════════════════════════
+       THEME TOGGLE
+    ═══════════════════════════════════════════════════════ */
+    const themeDark  = document.getElementById('themeDark');
+    const themeLight = document.getElementById('themeLight');
+
+    function setTheme(mode) {
+      document.body.classList.toggle('light', mode === 'light');
+      themeDark?.classList.toggle('active',  mode === 'dark');
+      themeLight?.classList.toggle('active', mode === 'light');
+      localStorage.setItem('squad21001-theme', mode);
+    }
+
+    setTheme(localStorage.getItem('squad21001-theme') || 'dark');
+    themeDark?.addEventListener('click',  () => setTheme('dark'));
+    themeLight?.addEventListener('click', () => setTheme('light'));
+
+    /* ═══════════════════════════════════════════════════════
+       TABS
+    ═══════════════════════════════════════════════════════ */
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + target).classList.add('active');
+      });
+    });
+
+    /* ═══════════════════════════════════════════════════════
+       SCHEMA SELECTOR (within Dados tab)
+    ═══════════════════════════════════════════════════════ */
+    document.querySelectorAll('.table-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.schema;
+        document.querySelectorAll('.table-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.schema-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('schema-' + target).classList.add('active');
+      });
+    });
+
+    /* ═══════════════════════════════════════════════════════
+       THREE.JS — PARTICLE SPHERE → "SQUAD 21001" TEXT
+    ═══════════════════════════════════════════════════════ */
+    function startParticles3D() {
+      if (typeof THREE === 'undefined') { setTimeout(startParticles3D, 120); return; }
+      const cont = document.getElementById('p3d');
+      if (!cont || cont.dataset.started) return;
+      cont.dataset.started = 'true';
+
+      const scene    = new THREE.Scene();
+      const camera   = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.55));
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x000000, 0);
+      renderer.domElement.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+      cont.appendChild(renderer.domElement);
+      camera.position.z = 25;
+
+      const count = window.innerWidth < 700 ? 2500 : 6200;
+      const geometry      = new THREE.BufferGeometry();
+      const positions     = new Float32Array(count * 3);
+      const colors        = new Float32Array(count * 3);
+      const sphereTargets = new Float32Array(count * 3);
+      const textTargets   = new Float32Array(count * 3);
+
+      for (let i = 0; i < count; i++) {
+        const phi   = Math.acos(-1 + (2 * i) / count);
+        const theta = Math.sqrt(count * Math.PI) * phi;
+        const sx = 8 * Math.cos(theta) * Math.sin(phi);
+        const sy = 8 * Math.sin(theta) * Math.sin(phi);
+        const sz = 8 * Math.cos(phi);
+        sphereTargets[i*3]   = sx + (Math.random()-.5)*.55;
+        sphereTargets[i*3+1] = sy + (Math.random()-.5)*.55 + 1.6;
+        sphereTargets[i*3+2] = sz + (Math.random()-.5)*.55;
+        positions[i*3]   = sphereTargets[i*3];
+        positions[i*3+1] = sphereTargets[i*3+1];
+        positions[i*3+2] = sphereTargets[i*3+2];
+        const c = new THREE.Color();
+        const d = Math.sqrt(sx*sx + sy*sy + sz*sz) / 8;
+        c.setHSL(0.33 + d * .06, .82, .48 + d * .18);
+        colors[i*3] = c.r; colors[i*3+1] = c.g; colors[i*3+2] = c.b;
+      }
+
+      function buildText(txt, offsetY, fontSize) {
+        const cv = document.createElement('canvas');
+        const cx = cv.getContext('2d');
+        const fs = fontSize || 88;
+        cx.font = 'bold ' + fs + 'px Arial';
+        const tw = cx.measureText(txt).width;
+        cv.width = tw + 90; cv.height = fs + 90;
+        cx.fillStyle = 'white';
+        cx.font = 'bold ' + fs + 'px Arial';
+        cx.textBaseline = 'middle'; cx.textAlign = 'center';
+        cx.fillText(txt, cv.width / 2, cv.height / 2);
+        const data = cx.getImageData(0, 0, cv.width, cv.height).data;
+        const pts = [];
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i] > 128) {
+            const px = (i / 4) % cv.width;
+            const py = Math.floor((i / 4) / cv.width);
+            if (Math.random() < .34) {
+              pts.push({
+                x: (px - cv.width  / 2) / (fs / 8.8),
+                y: -(py - cv.height / 2) / (fs / 8.8) + offsetY + 1.6
+              });
+            }
+          }
+        }
+        for (let j = 0; j < count; j++) {
+          if (j < pts.length) {
+            textTargets[j*3]   = pts[j].x;
+            textTargets[j*3+1] = pts[j].y;
+            textTargets[j*3+2] = (Math.random() - .5) * .85;
+          } else {
+            const ang = Math.random() * Math.PI * 2;
+            const rad = Math.random() * 18 + 10;
+            textTargets[j*3]   = Math.cos(ang) * rad;
+            textTargets[j*3+1] = Math.sin(ang) * rad + offsetY + 1.6;
+            textTargets[j*3+2] = (Math.random() - .5) * 8;
+          }
+        }
+      }
+
+      // Animated background spells out the Squad's identity
+      buildText('SQUAD 21001', 0, window.innerWidth < 700 ? 52 : 70);
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+
+      const mat = new THREE.PointsMaterial({
+        size: .078, vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        transparent: true, opacity: .82, sizeAttenuation: true
+      });
+      const particles3D = new THREE.Points(geometry, mat);
+      scene.add(particles3D);
+
+      let state = 'sphere', morphProgress = 0, stateTimer = 0;
+      const STATE_DUR = 260, MORPH_DUR = 115;
+
+      function animate() {
+        requestAnimationFrame(animate);
+        stateTimer++;
+        if (stateTimer > STATE_DUR) {
+          if      (state === 'sphere') { state = 'morphToText';   morphProgress = 0; }
+          else if (state === 'text')   { state = 'morphToSphere'; morphProgress = 0; }
+          stateTimer = 0;
+        }
+        const pos = particles3D.geometry.attributes.position.array;
+        if (state === 'morphToText' || state === 'morphToSphere') {
+          morphProgress++;
+          const t2 = Math.min(morphProgress / MORPH_DUR, 1);
+          const et = t2 < .5 ? 2*t2*t2 : 1 - Math.pow(-2*t2+2, 2) / 2;
+          const from = state === 'morphToText' ? sphereTargets : textTargets;
+          const to   = state === 'morphToText' ? textTargets   : sphereTargets;
+          for (let i = 0; i < pos.length; i++) pos[i] = from[i] + (to[i] - from[i]) * et;
+          particles3D.geometry.attributes.position.needsUpdate = true;
+          if (morphProgress >= MORPH_DUR) {
+            state = state === 'morphToText' ? 'text' : 'sphere';
+            stateTimer = 0;
+          }
+        }
+        if (state === 'sphere') {
+          particles3D.rotation.y += .0025;
+          particles3D.rotation.x += .0008;
+        } else {
+          particles3D.rotation.y *= .95;
+          particles3D.rotation.x *= .95;
+        }
+        renderer.render(scene, camera);
+      }
+
+      animate();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    }
+
+    startParticles3D();
+  </script>
+</body>
+</html>
