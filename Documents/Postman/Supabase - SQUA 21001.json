@@ -1,0 +1,212 @@
+{
+  "info": {
+    "_postman_id": "93fe21ee-9c2f-4788-91a1-adfe28ca3fe0",
+    "name": "Supabase - Novo Projeto",
+    "description": "Collection configurada para o projeto eayareunpwvykvubtwts.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "33333977"
+  },
+  "item": [
+    {
+      "name": "Ler dim_deputados",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "sb_publishable_KJ8uBR6Ms-mNseD3hbKPIg_NxkwyHnO",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_19jd}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://eayareunpwvykvubtwts.supabase.co/rest/v1/dim_deputados?select=*",
+          "protocol": "https",
+          "host": [
+            "eayareunpwvykvubtwts",
+            "supabase",
+            "co"
+          ],
+          "path": [
+            "rest",
+            "v1",
+            "dim_deputados"
+          ],
+          "query": [
+            {
+              "key": "select",
+              "value": "*"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ler dim_partidos",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "sb_publishable_KJ8uBR6Ms-mNseD3hbKPIg_NxkwyHnO",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_19jd}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://eayareunpwvykvubtwts.supabase.co/rest/v1/dim_partidos?select=*",
+          "protocol": "https",
+          "host": [
+            "eayareunpwvykvubtwts",
+            "supabase",
+            "co"
+          ],
+          "path": [
+            "rest",
+            "v1",
+            "dim_partidos"
+          ],
+          "query": [
+            {
+              "key": "select",
+              "value": "*"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ler fato_despesas",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "sb_publishable_KJ8uBR6Ms-mNseD3hbKPIg_NxkwyHnO",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_19jd}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://eayareunpwvykvubtwts.supabase.co/rest/v1/fato_despesas?select=*",
+          "protocol": "https",
+          "host": [
+            "eayareunpwvykvubtwts",
+            "supabase",
+            "co"
+          ],
+          "path": [
+            "rest",
+            "v1",
+            "fato_despesas"
+          ],
+          "query": [
+            {
+              "key": "select",
+              "value": "*"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ler fato_proposicoes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "sb_publishable_KJ8uBR6Ms-mNseD3hbKPIg_NxkwyHnO",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_19jd}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://eayareunpwvykvubtwts.supabase.co/rest/v1/fato_proposicoes?select=*",
+          "protocol": "https",
+          "host": [
+            "eayareunpwvykvubtwts",
+            "supabase",
+            "co"
+          ],
+          "path": [
+            "rest",
+            "v1",
+            "fato_proposicoes"
+          ],
+          "query": [
+            {
+              "key": "select",
+              "value": "*"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Ler fato_votacoes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "apikey",
+            "value": "sb_publishable_KJ8uBR6Ms-mNseD3hbKPIg_NxkwyHnO",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_19jd}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://eayareunpwvykvubtwts.supabase.co/rest/v1/fato_votacoes?select=*",
+          "protocol": "https",
+          "host": [
+            "eayareunpwvykvubtwts",
+            "supabase",
+            "co"
+          ],
+          "path": [
+            "rest",
+            "v1",
+            "fato_votacoes"
+          ],
+          "query": [
+            {
+              "key": "select",
+              "value": "*"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "bearer_token_19jd",
+      "secret": true
+    }
+  ]
+}
