@@ -1507,6 +1507,17 @@
         "email": "dep.denisepessoa@camara.leg.br"
     },
     {
+        "id": 220689,
+        "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/220689",
+        "nome": "Detinha",
+        "siglaPartido": "PL",
+        "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/37906",
+        "siglaUf": "MA",
+        "idLegislatura": 57,
+        "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/220689.jpg",
+        "email": "dep.detinha@camara.leg.br"
+    },
+    {
         "id": 160588,
         "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/160588",
         "nome": "Diego Andrade",
@@ -2959,6 +2970,17 @@
         "email": "dep.josenildo@camara.leg.br"
     },
     {
+        "id": 204563,
+        "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/204563",
+        "nome": "Josimar Maranhãozinho",
+        "siglaPartido": "PL",
+        "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/37906",
+        "siglaUf": "MA",
+        "idLegislatura": 57,
+        "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/204563.jpg",
+        "email": "dep.josimarmaranhaozinho@camara.leg.br"
+    },
+    {
         "id": 215043,
         "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/215043",
         "nome": "Josivaldo JP",
@@ -3762,6 +3784,17 @@
         "email": "dep.marionegromontejr@camara.leg.br"
     },
     {
+        "id": 204566,
+        "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/204566",
+        "nome": "Marreca Filho",
+        "siglaPartido": "PRD",
+        "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/38010",
+        "siglaUf": "MA",
+        "idLegislatura": 57,
+        "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/204566.jpg",
+        "email": "dep.marrecafilho@camara.leg.br"
+    },
+    {
         "id": 220572,
         "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/220572",
         "nome": "Marussa Boldrin",
@@ -4125,17 +4158,6 @@
         "email": "dep.otonidepaula@camara.leg.br"
     },
     {
-        "id": 220706,
-        "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/220706",
-        "nome": "Padovani",
-        "siglaPartido": "PP",
-        "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/37903",
-        "siglaUf": "PR",
-        "idLegislatura": 57,
-        "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/220706.jpg",
-        "email": "dep.padovani@camara.leg.br"
-    },
-    {
         "id": 160556,
         "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/160556",
         "nome": "Padre João",
@@ -4332,17 +4354,6 @@
         "idLegislatura": 57,
         "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/74574.jpg",
         "email": "dep.paulomagalhaes@camara.leg.br"
-    },
-    {
-        "id": 128760,
-        "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/128760",
-        "nome": "Paulo Marinho Jr",
-        "siglaPartido": "PL",
-        "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/37906",
-        "siglaUf": "MA",
-        "idLegislatura": 57,
-        "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/128760.jpg",
-        "email": "dep.paulomarinhojr@camara.leg.br"
     },
     {
         "id": 74400,
@@ -4673,17 +4684,6 @@
         "idLegislatura": 57,
         "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/175765.jpg",
         "email": "dep.ribamarsilva@camara.leg.br"
-    },
-    {
-        "id": 235088,
-        "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/235088",
-        "nome": "Ribeiro Neto",
-        "siglaPartido": "SOLIDARIEDADE",
-        "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/37904",
-        "siglaUf": "MA",
-        "idLegislatura": 57,
-        "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/235088.jpg",
-        "email": "dep.ribeironeto@camara.leg.br"
     },
     {
         "id": 221329,
@@ -5038,6 +5038,17 @@
         "email": "dep.sandroalex@camara.leg.br"
     },
     {
+        "id": 236518,
+        "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/236518",
+        "nome": "Santin Roveda",
+        "siglaPartido": "UNIÃO",
+        "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/38009",
+        "siglaUf": "PR",
+        "idLegislatura": 57,
+        "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/236518.jpg",
+        "email": "dep.santinroveda@camara.leg.br"
+    },
+    {
         "id": 204387,
         "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/204387",
         "nome": "Sargento Fahur",
@@ -5146,17 +5157,6 @@
         "idLegislatura": 57,
         "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/204360.jpg",
         "email": "dep.silviacristina@camara.leg.br"
-    },
-    {
-        "id": 227310,
-        "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/227310",
-        "nome": "Silvio Antonio",
-        "siglaPartido": "PL",
-        "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/37906",
-        "siglaUf": "MA",
-        "idLegislatura": 57,
-        "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/227310.jpg",
-        "email": "dep.silvioantonio@camara.leg.br"
     },
     {
         "id": 204425,
@@ -5366,6 +5366,17 @@
         "idLegislatura": 57,
         "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/157130.jpg",
         "email": "dep.tuliogadelha@camara.leg.br"
+    },
+    {
+        "id": 236423,
+        "uri": "https://dadosabertos.camara.leg.br/api/v2/deputados/236423",
+        "nome": "Valdir Trindade",
+        "siglaPartido": "REPUBLICANOS",
+        "uriPartido": "https://dadosabertos.camara.leg.br/api/v2/partidos/37908",
+        "siglaUf": "PB",
+        "idLegislatura": 57,
+        "urlFoto": "https://www.camara.leg.br/internet/deputado/bandep/236423.jpg",
+        "email": "dep.valdirtrindade@camara.leg.br"
     },
     {
         "id": 160610,

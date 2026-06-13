@@ -1,0 +1,17 @@
+[PURPOSE]
+O objetivo principal é gerar um Dossiê de Documentação Técnica exaustivo para o projeto "Bússola Pública - Radar Legislativo", detalhando todas as camadas arquiteturais da solução (Ingestão, IA, Armazenamento e Mensageria).
+
+[AUDIENCE]
+Engenheiros de Dados, Arquitetos de Solução, Avaliadores Técnicos Corporativos e Stakeholders de Operações de TI. O tom deve ser formal, altamente técnico e objetivo.
+
+[CONTEXT]
+O projeto resolve uma dor crítica de inteligência governamental para a consultoria Bússola Pública. Ele automatiza a captura de dados legislativos na Câmara dos Deputados através de uma pipeline Python local (gerenciada por UV e contida em Parquet), faz enriquecimento analítico cognitivo com OpenAI (GPT-4o-mini), armazena a camada Gold no Supabase (PostgreSQL) e orquestra a distribuição e mensageria distribuída com tratamento inteligente de dados nulos/vazios através do N8N para Gmail (HTML) e Telegram (Markdown).
+
+[INSTRUCTIONS]
+1. Processe integralmente os arquivos de código, metadados e documentação prévia anexados.
+2. Extraia o dicionário de dados fidedigno da tabela `dim_proposicoes`.
+3. Detalhe os mecanismos internos de tratamento de erros e resiliência lógica desenvolvidos no N8N (Configuração "Never drop items").
+4. Estruture as seções de forma encadeada, garantindo que a transição entre Engenharia de Dados clássica e Inteligência Artificial Generativa seja clara.
+
+[FORMAT]
+A saída DEVE ser estruturada estritamente conforme a norma ABNT NBR 14724 para relatórios/dossiês técnicos. Utilize numeração progressiva de seções, formatação textual formalizada, recuos lógicos, tabelas normalizadas e elementos pré/pós-textuais simulados em Markdown.
