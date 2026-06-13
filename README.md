@@ -210,11 +210,11 @@ O workflow de notificação diária está versionado em [`Documents/n8n/Radar Le
 
 **Evidência de execução bem-sucedida:**
 
-![Execução do workflow n8n](../../evidências/n8n%20Radar%20Legislativo.png)
+![Execução do workflow n8n](Documents/Prints/n8n%20Radar%20Legislativo.png)
 
-![Notificação por e-mail](../../evidências/2026-06-13_16h37_42.jpg)
+![Notificação por e-mail](Documents/Prints/2026-06-13_16h37_42.jpg)
 
-![Notificação no Telegram](../../evidências/2026-06-13_16h38_46.jpg)
+![Notificação no Telegram](Documents/Prints/2026-06-13_16h38_46.jpg)
 
 ---
 
